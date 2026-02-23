@@ -9,7 +9,64 @@
 Оголошується Creator з абстрактним factory_method().
 Кожен ConcreteCreator перевизначає factory_method() і повертає свій тип продукту.
 Клієнтський код викликає factory_method() через інтерфейс Creator, не знаючи, який саме об'єкт буде створено.
-UML-діаграма
+```python
+from abc import ABC, abstractmethod
+
+# ─── Продукти ────────────────────────────────────────────────────
+class Transport(ABC):
+    @abstractmethod
+    def deliver(self) -> str:
+        pass
+
+class Truck(Transport):
+    def deliver(self) -> str:
+        return "Truck Доставка вантажівкою по дорозі"
+
+class Ship(Transport):
+    def deliver(self) -> str:
+        return "Ship Доставка кораблем по морю"
+
+class Plane(Transport):
+    def deliver(self) -> str:
+        return "Plane  Доставка літаком по повітрю"
+
+
+# ─── Creators ────────────────────────────────────────────────────
+class Logistics(ABC):
+    @abstractmethod
+    def factory_method(self) -> Transport:
+        """Фабричний метод — підкласи перевизначають цей метод."""
+        pass
+
+    def plan_delivery(self) -> str:
+        # Загальна логіка, яка використовує продукт через інтерфейс
+        transport = self.factory_method()
+        return f"Логістика: отримано транспорт → {transport.deliver()}"
+
+class RoadLogistics(Logistics):
+    def factory_method(self) -> Transport:
+        return Truck()
+
+class SeaLogistics(Logistics):
+    def factory_method(self) -> Transport:
+        return Ship()
+
+class AirLogistics(Logistics):
+    def factory_method(self) -> Transport:
+        return Plane()
+
+
+# ─── Клієнтський код ─────────────────────────────────────────────
+def client_code(logistics: Logistics) -> None:
+    print(logistics.plan_delivery())
+
+if __name__ == "__main__":
+    print("=== Фабричний метод ===")
+    for provider in [RoadLogistics(), SeaLogistics(), AirLogistics()]:
+        client_code(provider)
+
+
+
 '''
 ┌─────────────────────┐         ┌──────────────────┐
 │  <<abstract>>       │         │  <<abstract>>    │
@@ -29,6 +86,8 @@ UML-діаграма
 │factory_method│  │factory_method│  │factory_method│
 │ → Truck()    │  │ → Ship()     │  │ → Plane()    │
 └──────────────┘  └──────────────┘  └──────────────┘
+'''
+```
 
 2. Структурний шаблон - Міст (Bridge)
 Проблема
