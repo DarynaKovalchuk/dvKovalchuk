@@ -98,7 +98,71 @@ if __name__ == "__main__":
 Вимір 1 - Абстракція (фігури): абстрактний клас Shape зберігає посилання на об'єкт Color і делегує йому відповідальність за колір. Конкретні фігури (Circle, Square, Triangle) лише реалізують метод draw(), всередині якого звертаються до self.color.fill() - але не знають, який саме колір там буде.
 Вимір 2 - Реалізація (кольори): абстрактний клас Color оголошує метод fill(). Конкретні кольори (Red, Blue, Green) повертають свою назву. Вони нічого не знають про фігури.
 Завдяки такому розділенню, щоб додати новий колір - достатньо створити один клас-спадкоємець Color. Щоб додати нову фігуру - один клас-спадкоємець Shape. Жодна зміна в одному вимірі не зачіпає інший.
-UML-діаграма
+```python
+from abc import ABC, abstractmethod
+
+# ─── Implementation — кольори ─────────────────────────────────────
+class Color(ABC):
+    @abstractmethod
+    def fill(self) -> str:
+        pass
+
+class Red(Color):
+    def fill(self) -> str:
+        return "червоним"
+
+class Blue(Color):
+    def fill(self) -> str:
+        return "синім"
+
+class Green(Color):
+    def fill(self) -> str:
+        return "зеленим"
+
+
+# ─── Abstraction — фігури ─────────────────────────────────────────
+class Shape(ABC):
+    def __init__(self, color: Color):
+        self.color = color  # ← "Міст" до реалізації
+
+    @abstractmethod
+    def draw(self) -> str:
+        pass
+
+class Circle(Shape):
+    def draw(self) -> str:
+        return f"Коло, зафарбоване {self.color.fill()}"
+
+class Square(Shape):
+    def draw(self) -> str:
+        return f"Квадрат, зафарбований {self.color.fill()}"
+
+class Triangle(Shape):
+    def draw(self) -> str:
+        return f"Трикутник, зафарбований {self.color.fill()}"
+
+
+if __name__ == "__main__":
+    print("=== Шаблон Міст: фігури + кольори ===\n")
+
+    shapes = [
+        Circle(Red()),
+        Circle(Blue()),
+        Square(Red()),
+        Square(Green()),
+        Triangle(Blue()),
+        Triangle(Green()),
+    ]
+
+    for shape in shapes:
+        print(shape.draw())
+
+    print("\n--- Зміна кольору «на льоту» ---")
+    my_circle = Circle(Red())
+    print(f"До:    {my_circle.draw()}")
+    my_circle.color = Blue()
+    print(f"Після: {my_circle.draw()}")
+
 '''
 АБСТРАКЦІЯ                          РЕАЛІЗАЦІЯ
 ─────────────────────────────       ────────────────────────
@@ -121,6 +185,7 @@ UML-діаграма
 │draw()│  │draw()│  │draw()  │    └─────┘  └─────┘  └──────┘
 └──────┘  └──────┘  └────────┘
 '''
+```
 
 3. Поведінковий шаблон - Ланцюжок обов'язків (Chain of Responsibility)
 Проблема
@@ -130,9 +195,136 @@ UML-діаграма
 Кожен Handler зберігає посилання на наступний обробник (next_handler).
 Метод handle() або обробляє запит, або викликає next_handler.handle().
 Клієнт складає ланцюжок у потрібному порядку та відправляє запит першому.
-UML-діаграма
+```python
+from __future__ import annotations
+from abc import ABC, abstractmethod
+from typing import Optional
+import time
 
-'''
+# ─── Базовий Handler ─────────────────────────────────────────────
+class Handler(ABC):
+    def __init__(self):
+        self._next: Optional[Handler] = None
+
+    def set_next(self, handler: Handler) -> Handler:
+        """Повертає handler для зручного ланцюжкового виклику."""
+        self._next = handler
+        return handler
+
+    def handle(self, request: dict) -> Optional[str]:
+        if self._next:
+            return self._next.handle(request)
+        return None  # Кінець ланцюжка — ніхто не обробив
+
+
+# ─── Конкретні обробники ──────────────────────────────────────────
+class AuthHandler(Handler):
+    """Перевіряє наявність та коректність токена."""
+    VALID_TOKENS = {"secret-token-123", "admin-token-456"}
+
+    def handle(self, request: dict) -> Optional[str]:
+        token = request.get("token", "")
+        if token not in self.VALID_TOKENS:
+            return f"AuthHandler: відхилено — невалідний токен '{token}'"
+        print(f"AuthHandler: токен валідний")
+        return super().handle(request)
+
+
+class RateLimitHandler(Handler):
+    """Обмежує кількість запитів (проста in-memory реалізація)."""
+    def __init__(self, max_requests: int = 3):
+        super().__init__()
+        self.max_requests = max_requests
+        self._counts: dict[str, int] = {}
+
+    def handle(self, request: dict) -> Optional[str]:
+        user = request.get("user", "anonymous")
+        self._counts[user] = self._counts.get(user, 0) + 1
+        if self._counts[user] > self.max_requests:
+            return f"RateLimitHandler: ліміт запитів вичерпано для '{user}'"
+        print(f"RateLimitHandler: запит {self._counts[user]}/{self.max_requests}")
+        return super().handle(request)
+
+
+class ValidationHandler(Handler):
+    """Перевіряє обов'язкові поля запиту."""
+    REQUIRED_FIELDS = ["action", "data"]
+
+    def handle(self, request: dict) -> Optional[str]:
+        missing = [f for f in self.REQUIRED_FIELDS if f not in request]
+        if missing:
+            return f"ValidationHandler: відсутні поля: {missing}"
+        print(f"ValidationHandler: всі поля присутні")
+        return super().handle(request)
+
+
+class BusinessLogicHandler(Handler):
+    """Кінцевий обробник — виконує бізнес-логіку."""
+    def handle(self, request: dict) -> Optional[str]:
+        action = request["action"]
+        data = request["data"]
+        result = f"BusinessLogic: виконано '{action}' з даними: {data}"
+        print(result)
+        return result
+
+
+# ─── Клієнтський код ─────────────────────────────────────────────
+def process_request(chain: Handler, request: dict) -> None:
+    print(f"\n--- Запит: {request} ---")
+    result = chain.handle(request)
+    if result:
+        print(f"Результат: {result}")
+
+if __name__ == "__main__":
+    print("=== Ланцюжок обов'язків ===")
+
+    # Збираємо ланцюжок
+    auth     = AuthHandler()
+    rate     = RateLimitHandler(max_requests=2)
+    validate = ValidationHandler()
+    business = BusinessLogicHandler()
+
+    auth.set_next(rate).set_next(validate).set_next(business)
+
+    # Тест 1: коректний запит
+    process_request(auth, {
+        "token": "secret-token-123",
+        "user": "alice",
+        "action": "create",
+        "data": {"name": "Item A"}
+    })
+
+    # Тест 2: другий запит від alice (досягає ліміту)
+    process_request(auth, {
+        "token": "secret-token-123",
+        "user": "alice",
+        "action": "read",
+        "data": {"id": 1}
+    })
+
+    # Тест 3: третій запит — ліміт перевищено
+    process_request(auth, {
+        "token": "secret-token-123",
+        "user": "alice",
+        "action": "delete",
+        "data": {"id": 1}
+    })
+
+    # Тест 4: невалідний токен
+    process_request(auth, {
+        "token": "wrong-token",
+        "user": "eve",
+        "action": "hack",
+        "data": {}
+    })
+
+    # Тест 5: відсутні обов'язкові поля
+    process_request(auth, {
+        "token": "admin-token-456",
+        "user": "bob"
+    })
+
+    '''
     Client ──► [AuthHandler] ──► [RateLimitHandler] ──► [ValidationHandler] ──► [BusinessHandler]
                 │                    │                       │                       │
           перевіряє токен      рахує запити           перевіряє поля         виконує логіку
@@ -152,4 +344,5 @@ UML-діаграма
 │ Auth  │ │RateLimit │  │  Validation   │ │ BusinessLogic │
 │Handler│ │ Handler  │  │    Handler    │ │    Handler    │
 └───────┘ └──────────┘  └───────────────┘ └───────────────┘
-'''
+    '''
+```
