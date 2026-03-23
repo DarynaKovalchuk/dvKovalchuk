@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Головна — Lab 3{% endblock %}
+
+{% block head %}
+<style>
+  .page-header { margin-bottom: 32px; }
+  .page-header p { color: var(--muted); margin-top: 6px; font-size: 15px; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    transition: border-color .2s;
+  }
+  .stat-card:hover { border-color: var(--accent); }
+  .stat-icon { font-size: 28px; margin-bottom: 12px; }
+  .stat-value {
+    font-family: var(--font-head);
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -1px;
+  }
+  .stat-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-key  { font-size: 13px; color: var(--muted); }
+  .info-val  { font-size: 14px; font-weight: 500; }
+
+  .token-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--accent2);
+    font-family: monospace;
+    word-break: break-all;
+    margin-top: 12px;
+  }
+
+  .quick-links { display: flex; gap: 12px; margin-top: 24px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="fade-in">
+  <div class="page-header">
+    <h1>Привіт, {{ name }} 👋</h1>
+    <p>Ласкаво просимо до панелі керування. Роль: <strong>{{ role }}</strong></p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📄</div>
+      <div class="stat-value" id="notesCount">—</div>
+      <div class="stat-label">Нотаток створено</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🔐</div>
+      <div class="stat-value">{{ role|upper }}</div>
+      <div class="stat-label">Роль у системі</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-value" style="color:var(--accent2)">ACTIVE</div>
+      <div class="stat-label">Статус сесії</div>
+    </div>
+  </div>
+
+  <!-- Info + Token -->
+  <div class="info-grid">
+    <div class="card">
+      <h3>Інформація про сесію</h3>
+      <div class="info-row">
+        <span class="info-key">Користувач</span>
+        <span class="info-val">{{ username }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Ім'я</span>
+        <span class="info-val">{{ name }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Роль</span>
+        <span class="info-val"><span class="badge {% if role == 'user' %}user{% endif %}">{{ role }}</span></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Auth Token (localStorage)</h3>
+      <p style="font-size:13px;color:var(--muted);margin-top:8px;">
+        Токен зберігається у браузері та доступний на всіх сторінках через <code style="color:var(--accent2);font-size:12px;">State.token</code>.
+      </p>
+      <div class="token-box" id="tokenDisplay">Завантаження...</div>
+    </div>
+  </div>
+
+  <div class="quick-links">
+    <a href="/notes" class="btn btn-primary">📝 Перейти до нотаток</a>
+    <a href="/profile" class="btn btn-ghost">👤 Профіль</a>
+  </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Читаємо стан із localStorage (спільний між сторінками)
+  document.getElementById("tokenDisplay").textContent =
+    State.token || "Токен не знайдено";
+
+  // Рахуємо нотатки
+  api("/api/notes").then(data => {
+    document.getElementById("notesCount").textContent = data.notes.length;
+  }).catch(() => {
+    document.getElementById("notesCount").textContent = "0";
+  });
+</script>
+{% endblock %}

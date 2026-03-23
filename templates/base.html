@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Lab 3{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0d0f14;
+      --surface:  #141720;
+      --border:   #1f2433;
+      --accent:   #e8ff47;
+      --accent2:  #47d9ff;
+      --text:     #e8eaf0;
+      --muted:    #6b7280;
+      --danger:   #ff5a5a;
+      --radius:   12px;
+      --font-head: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 15px;
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 32px;
+      height: 60px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-logo {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 18px;
+      color: var(--accent);
+      margin-right: auto;
+      letter-spacing: -0.5px;
+    }
+    .nav-link {
+      text-decoration: none;
+      color: var(--muted);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all .2s;
+    }
+    .nav-link:hover, .nav-link.active {
+      color: var(--text);
+      background: var(--border);
+    }
+    .nav-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: 12px;
+      padding-left: 12px;
+      border-left: 1px solid var(--border);
+    }
+    .nav-user span { font-size: 13px; color: var(--muted); }
+    .nav-user strong { color: var(--text); font-weight: 500; }
+    .badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: var(--accent);
+      color: #0d0f14;
+      font-weight: 700;
+      font-family: var(--font-head);
+    }
+    .badge.user { background: var(--accent2); }
+
+    /* MAIN CONTENT */
+    main { padding: 40px 32px; max-width: 960px; margin: 0 auto; }
+
+    /* CARDS */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all .2s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #0d0f14;
+    }
+    .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+    }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+
+    /* FORM */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 13px; color: var(--muted); font-weight: 500; letter-spacing: .4px; text-transform: uppercase; }
+    .field input, .field textarea {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 11px 14px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 15px;
+      transition: border-color .2s;
+      outline: none;
+    }
+    .field input:focus, .field textarea:focus { border-color: var(--accent); }
+    .field textarea { resize: vertical; min-height: 90px; }
+
+    /* ALERTS */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+    .alert.error  { background: rgba(255,90,90,.12); border: 1px solid rgba(255,90,90,.3); color: #ff8a8a; }
+    .alert.success{ background: rgba(232,255,71,.1);  border: 1px solid rgba(232,255,71,.3); color: var(--accent); }
+    .alert.show   { display: block; }
+
+    /* HEADINGS */
+    h1 { font-family: var(--font-head); font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+    h2 { font-family: var(--font-head); font-size: 20px; font-weight: 600; }
+    h3 { font-family: var(--font-head); font-size: 16px; font-weight: 600; }
+
+    /* PAGE FADE IN */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeUp .4s ease both; }
+
+    /* LOGOUT BTN */
+    #logoutBtn {
+      font-size: 13px;
+      padding: 6px 14px;
+      border-radius: 8px;
+    }
+
+    /* SPINNER */
+    .spin {
+      width: 16px; height: 16px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  {% if session.get('username') %}
+  <nav>
+    <span class="nav-logo">⬡ Lab3</span>
+    <a href="/dashboard" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">Головна</a>
+    <a href="/notes"     class="nav-link {% if request.endpoint == 'notes'     %}active{% endif %}">Нотатки</a>
+    <a href="/profile"   class="nav-link {% if request.endpoint == 'profile'   %}active{% endif %}">Профіль</a>
+    <div class="nav-user">
+      <strong>{{ name }}</strong>
+      <span class="badge {% if role == 'user' %}user{% endif %}">{{ role }}</span>
+      <button class="btn btn-ghost" id="logoutBtn" onclick="logout()">Вийти</button>
+    </div>
+  </nav>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+
+  <script>
+    // ── Shared state (global, persists across pages via localStorage) ──────────
+    const State = {
+      get token()    { return localStorage.getItem("auth_token"); },
+      get username() { return localStorage.getItem("username"); },
+      get role()     { return localStorage.getItem("role"); },
+      set(token, username, role) {
+        localStorage.setItem("auth_token", token);
+        localStorage.setItem("username", username);
+        localStorage.setItem("role", role);
+      },
+      clear() {
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("username");
+        localStorage.removeItem("role");
+      }
+    };
+
+    // ── API helper ─────────────────────────────────────────────────────────────
+    async function api(url, options = {}) {
+      options.headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+      try {
+        const res = await fetch(url, options);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Помилка сервера");
+        return data;
+      } catch (e) {
+        throw e;
+      }
+    }
+
+    // ── Logout ─────────────────────────────────────────────────────────────────
+    async function logout() {
+      const btn = document.getElementById("logoutBtn");
+      if (btn) btn.innerHTML = '<span class="spin"></span>';
+      try {
+        await api("/api/logout", { method: "POST" });
+      } catch(_) {}
+      State.clear();
+      window.location.href = "/login";
+    }
+
+    // ── Alert helpers ──────────────────────────────────────────────────────────
+    function showAlert(id, msg, type = "error") {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = msg;
+      el.className = `alert ${type} show`;
+      setTimeout(() => el.classList.remove("show"), 4000);
+    }
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

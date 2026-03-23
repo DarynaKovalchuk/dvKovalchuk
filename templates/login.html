@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Вхід — Lab 3{% endblock %}
+
+{% block head %}
+<style>
+  body { display: flex; align-items: center; justify-content: center; }
+
+  .login-wrap {
+    width: 100%;
+    max-width: 400px;
+    padding: 24px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .login-logo {
+    font-family: var(--font-head);
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--accent);
+    text-align: center;
+    margin-bottom: 6px;
+    letter-spacing: -2px;
+  }
+  .login-sub {
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .btn-login {
+    width: 100%;
+    justify-content: center;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  .hint {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .hint code {
+    background: var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    color: var(--accent2);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-wrap">
+  <div class="login-logo">⬡ Lab3</div>
+  <p class="login-sub">Лабораторна робота №3 · Frontend-застосунок</p>
+
+  <div class="login-card">
+    <div id="alertBox" class="alert error"></div>
+
+    <div class="field">
+      <label>Логін</label>
+      <input type="text" id="username" placeholder="admin або user" autocomplete="username" />
+    </div>
+
+    <div class="field">
+      <label>Пароль</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+
+    <button class="btn btn-primary btn-login" id="loginBtn" onclick="doLogin()">
+      Увійти
+    </button>
+
+    <div class="hint">
+      Тестові акаунти:<br>
+      <code>admin</code> / <code>admin123</code> &nbsp;·&nbsp; <code>user</code> / <code>user123</code>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Enter → submit
+  document.addEventListener("keydown", e => {
+    if (e.key === "Enter") doLogin();
+  });
+
+  async function doLogin() {
+    const btn = document.getElementById("loginBtn");
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    btn.innerHTML = '<span class="spin"></span> Вхід...';
+    btn.disabled = true;
+
+    try {
+      const data = await api("/api/login", {
+        method: "POST",
+        body: JSON.stringify({ username, password })
+      });
+
+      // Зберігаємо токен у localStorage (спільний стан)
+      State.set(data.token, username, data.role);
+      window.location.href = "/dashboard";
+
+    } catch (e) {
+      showAlert("alertBox", e.message);
+      btn.innerHTML = "Увійти";
+      btn.disabled = false;
+    }
+  }
+</script>
+{% endblock %}

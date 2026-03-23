@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Профіль — Lab 3{% endblock %}
+
+{% block head %}
+<style>
+  .profile-grid { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
+
+  .avatar-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px 24px;
+    text-align: center;
+    height: fit-content;
+  }
+  .avatar {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-head);
+    font-size: 32px;
+    font-weight: 800;
+    color: #0d0f14;
+    margin: 0 auto 16px;
+  }
+  .avatar-name {
+    font-family: var(--font-head);
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .info-section { margin-bottom: 24px; }
+  .info-section h3 { margin-bottom: 14px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .8px; }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-row span:first-child { color: var(--muted); }
+
+  .perms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .perm {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font-head);
+  }
+  .perm.yes { background: rgba(232,255,71,.15); color: var(--accent); border: 1px solid rgba(232,255,71,.3); }
+  .perm.no  { background: rgba(107,114,128,.1); color: var(--muted); border: 1px solid var(--border); text-decoration: line-through; }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="fade-in">
+  <div class="page-header" style="margin-bottom:28px;">
+    <h1>Профіль</h1>
+  </div>
+
+  <div class="profile-grid">
+    <!-- Left: avatar -->
+    <div class="avatar-card">
+      <div class="avatar">{{ name[0] }}</div>
+      <div class="avatar-name">{{ name }}</div>
+      <span class="badge {% if role == 'user' %}user{% endif %}">{{ role }}</span>
+    </div>
+
+    <!-- Right: details -->
+    <div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="info-section">
+          <h3>Облікові дані</h3>
+          <div class="info-row"><span>Логін</span><span>{{ username }}</span></div>
+          <div class="info-row"><span>Ім'я</span><span>{{ name }}</span></div>
+          <div class="info-row"><span>Роль</span><span>{{ role }}</span></div>
+        </div>
+
+        <div class="info-section">
+          <h3>Токен авторизації (localStorage)</h3>
+          <div style="font-family:monospace;font-size:12px;color:var(--accent2);background:var(--bg);
+                      padding:10px 12px;border-radius:8px;border:1px solid var(--border);" id="tokenBlock">
+            Завантаження...
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="info-section" style="margin-bottom:0;">
+          <h3>Дозволи ролі: {{ role }}</h3>
+          <div class="perms" id="permsBlock"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Токен із localStorage — спільний стан
+  document.getElementById("tokenBlock").textContent =
+    State.token || "Токен відсутній";
+
+  // Відображення прав залежно від ролі
+  const role = "{{ role }}";
+  const allPerms = {
+    "Читання нотаток": true,
+    "Запис нотаток":   true,
+    "Видалення нотаток": true,
+    "Управління користувачами": role === "admin",
+    "Доступ до адмін-панелі":   role === "admin",
+  };
+
+  const wrap = document.getElementById("permsBlock");
+  for (const [label, allowed] of Object.entries(allPerms)) {
+    const span = document.createElement("span");
+    span.className = "perm " + (allowed ? "yes" : "no");
+    span.textContent = (allowed ? "✓ " : "✗ ") + label;
+    wrap.appendChild(span);
+  }
+</script>
+{% endblock %}
