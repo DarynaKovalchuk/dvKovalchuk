@@ -1,0 +1,147 @@
+### =============================================
+### Library API — тести для VS Code REST Client
+### Розширення: "REST Client" by Huachao Mao
+### =============================================
+
+@BASE = http://localhost:8000/api/v1
+
+### ─────────────────────────────────────────────
+### AUTHORS
+### ─────────────────────────────────────────────
+
+### 1. Отримати всіх авторів (з пагінацією)
+GET {{BASE}}/authors?page=1&page_size=5
+
+###
+
+### 2. Отримати авторів із сортуванням та фільтрацією
+GET {{BASE}}/authors?sort_by=name&sort_order=asc&nationality=Українська
+
+###
+
+### 3. Пошук автора по імені
+GET {{BASE}}/authors?name=Шевченко
+
+###
+
+### 4. Створити автора
+POST {{BASE}}/authors
+Content-Type: application/json
+
+{
+  "name": "Іван Франко",
+  "biography": "Великий український поет і мислитель.",
+  "nationality": "Українська"
+}
+
+###
+
+### 5. Отримати одного автора
+GET {{BASE}}/authors/1
+
+###
+
+### 6. Оновити автора
+PUT {{BASE}}/authors/1
+Content-Type: application/json
+
+{
+  "biography": "Оновлена біографія Тараса Шевченка"
+}
+
+###
+
+### 7. Видалити автора (обережно — видаляє і всі його книги!)
+# DELETE {{BASE}}/authors/1
+
+
+### ─────────────────────────────────────────────
+### BOOKS
+### ─────────────────────────────────────────────
+
+### 8. Отримати всі книги автора
+GET {{BASE}}/authors/1/books?page=1&page_size=10
+
+###
+
+### 9. Отримати книги з фільтрацією по жанру і сортуванням
+GET {{BASE}}/authors/1/books?genre=Поезія&sort_by=year&sort_order=asc
+
+###
+
+### 10. Отримати всі книги (глобально)
+GET {{BASE}}/books?title=Коб&page=1
+
+###
+
+### 11. Створити книгу для автора з id=1
+POST {{BASE}}/authors/1/books
+Content-Type: application/json
+
+{
+  "title": "Гайдамаки",
+  "genre": "Поезія",
+  "year": 1841,
+  "description": "Збірка поетичних творів Івана Франка"
+}
+
+###
+
+### 12. Отримати книгу
+GET {{BASE}}/authors/1/books/1
+
+###
+
+### 13. Оновити книгу
+PUT {{BASE}}/authors/1/books/1
+Content-Type: application/json
+
+{
+  "description": "Одна з найвизначніших пам'яток української літератури"
+}
+
+###
+
+### 14. Видалити книгу
+# DELETE {{BASE}}/authors/1/books/1
+
+
+### ─────────────────────────────────────────────
+### REVIEWS
+### ─────────────────────────────────────────────
+
+### 15. Отримати відгуки до книги з id=1
+GET {{BASE}}/books/1/reviews?sort_by=rating&sort_order=desc
+
+###
+
+### 16. Фільтрація відгуків за мінімальним рейтингом
+GET {{BASE}}/books/1/reviews?min_rating=4.0
+
+###
+
+### 17. Додати відгук до книги
+POST {{BASE}}/books/1/reviews
+Content-Type: application/json
+
+{
+  "reviewer_name": "Олена Петренко",
+  "rating": 5.0,
+  "comment": "Неймовірна книга, читала за один вечір!"
+}
+
+###
+
+### 18. Оновити відгук
+PUT {{BASE}}/books/1/reviews/1
+Content-Type: application/json
+
+{
+  "rating": 4.5,
+  "comment": "Трохи переосмислила — все одно чудово"
+}
+
+###
+
+### 19. Видалити відгук
+# DELETE {{BASE}}/books/1/reviews/1
