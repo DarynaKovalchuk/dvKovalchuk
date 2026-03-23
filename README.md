@@ -359,7 +359,7 @@ SQLite — база даних
 Uvicorn — ASGI-сервер для запуску застосунку
 
 2. Структура проекту
-'''
+```
 library_api/
 ├── main.py             
 ├── requirements.txt     
@@ -373,10 +373,10 @@ library_api/
         ├── authors.py   
         ├── books.py     
         └── reviews.py
-'''
+```
 
 4. Сутності та зв'язки між ними
-'''
+```
 В системі реалізовано 3 сутності з такими зв'язками:
 Author (Автор)
     │
@@ -387,10 +387,10 @@ Book (Книга)
     │  одна книга має багато відгуків
     ▼
 Review (Відгук)
-'''
+```
 
 6. POST — Створення записів
-'''
+```
    ### 4. Створити автора
 POST {{BASE}}/authors
 Content-Type: application/json
@@ -412,10 +412,10 @@ HTTP/1.1 201 Created
   "created_at": "2024-01-15T10:30:00",
   "books": []
 }
-'''
+```
 
 5. GET — Отримання даних
-'''
+```
 ### 5. Отримати одного автора
 GET {{BASE}}/authors/1
 
@@ -432,18 +432,18 @@ HTTP/1.1 200 OK
   "created_at": "2026-03-23T14:29:23",
   "reviews": []
 }
-'''
+```
 
 6. DELETE — Видалення запису
-'''
+```
 DELETE {{BASE}}/books/1/reviews/1`
 
 Результат:
 HTTP/1.1 204 No Content
-'''
+```
 
 7. PUT - Оновити автора
-'''
+```
 PUT {{BASE}}/authors/1
 Content-Type: application/json
 
@@ -469,10 +469,10 @@ Content-Type: application/json
       "created_at": "2026-03-23T14:29:23"
     }
 }
-'''
+```
 
 8. Пагінація
-'''
+```
 ### 1. Отримати всіх авторів (з пагінацією)
 GET {{BASE}}/authors?page=1&page_size=5:
 json{
@@ -482,22 +482,22 @@ json{
   "total_pages": 1,
   "items": [...]
 }
-'''
+```
 
 9. Сортування
-'''
+```
 ### 1. Отримати авторів із сортуванням та фільтрацією
 GET {{BASE}}/authors?sort_by=name&sort_order=asc
 ### 2. Отримати книги з фільтрацією по жанру і сортуванням
 GET {{BASE}}/authors/1/books?sort_by=year&sort_order=asc
-'''
+```
 
 10. Фільтрація
-'''
+```
 ### 1. Пошук автора по імені
 GET {{BASE}}/authors?name=Шевченко
 ### 2. Фільтр по жанру:
 GET {{BASE}}/authors/1/books?genre=Поезія
-'''
 ### 3. Фільтрація відгуків за мінімальним рейтингом
 GET {{BASE}}/books/1/reviews?min_rating=4.0
+```
