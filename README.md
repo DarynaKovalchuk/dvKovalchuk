@@ -553,3 +553,144 @@ lab3/
 Усі запити до сервера обгорнуті у конструкцію try/catch. У разі помилки (невірний пароль, порожнє поле, збій сервера) на сторінці відображається відповідне повідомлення, яке автоматично зникає через 4 секунди. Сервер повертає відповідні HTTP-коди: 400 при некоректних даних, 401 при невірній авторизації.
 
 ​​​​​​​​​​​​​​​​
+ЛАБОРАТОРНА 4 ---------------------------------------------------------------
+
+Структура проекту:
+```
+project/
+│
+├── app/                    
+│   ├── api.py
+│   └── utils.py
+│
+├── tests/
+│   ├── test_unit.py
+│   ├── test_integration.py
+│   └── locustfile.py
+│
+├── scraping/
+│   └── scraper.py
+│
+├── requirements.txt
+└── README.md
+```
+
+Unit tests:
+
+app/utils.py
+```
+def add(a, b):
+    return a + b
+
+def divide(a, b):
+    if b == 0:
+        raise ValueError("Division by zero")
+    return a / b
+```
+
+tests/test_unit.py:
+```
+from app.utils import add, divide
+import pytest
+
+def test_add():
+    assert add(2, 3) == 5
+
+def test_divide():
+    assert divide(10, 2) == 5
+
+def test_divide_by_zero():
+    with pytest.raises(ValueError):
+        divide(10, 0)
+```
+
+app/api.py:
+```
+import requests
+
+BASE_URL = "https://jsonplaceholder.typicode.com"
+
+def get_post(post_id):
+    response = requests.get(f"{BASE_URL}/posts/{post_id}")
+    return response.json()
+```
+
+tests/test_integration.py:
+```
+from app.api import get_post
+
+def test_get_post():
+    post = get_post(1)
+    assert post["id"] == 1
+    assert "title" in post
+```
+
+tests/locustfile.py:
+```
+from locust import HttpUser, task
+
+class APIUser(HttpUser):
+    host = "https://jsonplaceholder.typicode.com"
+
+    @task
+    def complex_scenario(self):
+        # Перший виклик
+        response = self.client.get("/posts/1")
+        post_id = response.json()["id"]
+
+        # Другий виклик використовує результат першого
+        self.client.get(f"/comments?postId={post_id}")
+```
+
+scraping/scraper.py:
+```
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+import time
+
+driver = webdriver.Chrome()
+
+try:
+    # Авторизація
+    driver.get("https://example.com/login")
+
+    username = driver.find_element(By.NAME, "username")
+    password = driver.find_element(By.NAME, "password")
+
+    username.send_keys("your_login")
+    password.send_keys("your_password")
+    password.send_keys(Keys.RETURN)
+
+    time.sleep(2)
+
+    # Перехід на сторінку
+    driver.get("https://example.com/profile")
+
+    # Зчитування даних
+    data = driver.find_element(By.TAG_NAME, "body").text
+
+    print("Отримані дані:")
+    print(data)
+
+finally:
+    driver.quit()
+```
+
+Unit:
+Перевірка додавання
+Перевірка ділення
+Перевірка помилки при діленні на нуль
+Integration:
+Отримання post через API
+Перевірка структури відповіді
+Performance:
+Endpoint /posts/1
+Складний сценарій:
+Отримати post
+Взяти id
+Передати id у /comments
+Scraping:
+Login
+Перехід у профіль
+Зчитування тексту сторінки
