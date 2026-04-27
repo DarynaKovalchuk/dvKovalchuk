@@ -694,3 +694,125 @@ Scraping:
 Login
 Перехід у профіль
 Зчитування тексту сторінки
+
+
+ЛАБОРАТОРНА 5 ---------------------------------------------------------------
+
+Структура проекту:
+```
+myapp/
+│
+├── app/
+│   └── main.py
+│
+├── tests/
+│   └── test_main.py
+│
+├── requirements.txt
+├── Dockerfile
+└── .github/
+    └── workflows/
+        └── ci-cd.yml
+```
+
+app/main.py:
+```
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"message": "Hello, Cloud!"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+```
+
+tests/test_main.py:
+```
+from fastapi.testclient import TestClient
+from app.main import app
+
+client = TestClient(app)
+
+def test_root():
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.json() == {"message": "Hello, Cloud!"}
+
+def test_health():
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json()["status"] == "ok"
+```
+
+Dockerfile:
+```
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE 8000
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+.github/workflows/ci-cd.yml:
+```
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          pytest
+
+  docker:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t myapp .
+
+  deploy:
+    needs: docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Render/Heroku
+        run: echo "Deploy step here"
+```
+
